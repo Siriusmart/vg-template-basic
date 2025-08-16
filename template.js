@@ -56,21 +56,29 @@ class BasicTemplate extends BlankTemplate {
             return fragments;
         });
 
-        this.registerComponent("inline-js", ({ elem, document }) => {
-            elem.parentNode.remove();
+        this.registerComponent(
+            "inline-js",
+            ({ elem, document }) => {
+                elem.parentNode.remove();
 
-            let scriptElem = document.createElement("script");
-            scriptElem.innerHTML = elem.innerHTML;
-            document.body.appendChild(scriptElem);
-        });
+                let scriptElem = document.createElement("script");
+                scriptElem.innerHTML = elem.innerHTML;
+                document.body.appendChild(scriptElem);
+            },
+            { hasSettings: false },
+        );
 
-        this.registerComponent("inline-css", ({ elem, document }) => {
-            elem.parentNode.remove();
+        this.registerComponent(
+            "inline-css",
+            ({ elem, document }) => {
+                elem.parentNode.remove();
 
-            let styleElem = document.createElement("style");
-            styleElem.innerHTML = elem.innerHTML;
-            document.head.appendChild(styleElem);
-        });
+                let styleElem = document.createElement("style");
+                styleElem.innerHTML = elem.innerHTML;
+                document.head.appendChild(styleElem);
+            },
+            { hasSettings: false },
+        );
 
         this.registerComponent("include", ({ elem, document, options }) => {
             elem.parentNode.remove();
