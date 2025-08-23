@@ -1,27 +1,11 @@
 #back {
   position: fixed;
-  top: 0;
-  height: calc(100vh - 0px);
-  width: 100%;
+  height: 100vh;
+  width: 100vw;
+  z-index: -100;
 }
 
 body {
   margin: 0;
-  position: static;
   top: 0;
-}
-
-key {
-  margin: 0;
-}
-
-p {
-  display: block;
-}
-
-#front {
-  display: block;
-  margin: 0;
-  position: absolute;
-  width: 100%;
 }

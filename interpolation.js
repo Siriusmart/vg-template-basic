@@ -19,6 +19,24 @@ var interpolation = {
         else return [after.value, { before, after }];
     },
 
+    previous(keyframes, { type }) {
+        let before, after;
+
+        for (let { position, value } of keyframes) {
+            if (type == "number") value = parseFloat(value);
+            if (position <= 0) {
+                before = { position, value };
+            } else {
+                after ??= { position, value };
+            }
+        }
+
+        if (before == undefined) return [after.value, { after }];
+        if (after == undefined) return [before.value, { before }];
+
+        return [before.value, before];
+    },
+
     linear(keyframes) {
         let before, after;
 

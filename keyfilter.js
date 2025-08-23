@@ -6,14 +6,26 @@ class EmptyKeyFilter {
     }
 }
 
+class CustomKeyFilter extends EmptyKeyFilter {
+    constructor(f) {
+        super();
+        this.f = f;
+    }
+
+    pass(key) {
+        return this.f(key) ?? key;
+    }
+}
+
 class LazyKeyFilter extends EmptyKeyFilter {
     constructor() {
         super();
     }
 
     pass(key) {
-        if (this.previous == key) return null;
-        else {
+        if (this.previous == key) {
+            return null;
+        } else {
             this.previous = key;
             return key;
         }
@@ -53,6 +65,8 @@ class SmoothedKeyFilter extends LazyKeyFilter {
     }
 
     pass(key) {
-        return super.pass(this.algorithm(key));
+        let res = this.algorithm(key);
+        this.previous = res;
+        return res;
     }
 }

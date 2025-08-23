@@ -2,6 +2,11 @@ let scenes = {};
 let keyCache = null;
 let keyDefs = {};
 
+let dependentValues = {};
+let dependentValueExtractors = {};
+let dependentValueListeners = {};
+let sceneDependents = {};
+
 Array.from(document.getElementsByTagName("keydef")).forEach((defElem) => {
     let sceneName = defElem.getAttribute("scene");
     let propertyName = defElem.getAttribute("property");
@@ -10,6 +15,12 @@ Array.from(document.getElementsByTagName("keydef")).forEach((defElem) => {
 
     if (defElem.getAttribute("smooth") == null)
         defElem.setAttribute("smooth", "nearest");
+
+    if (defElem.getAttribute("source") != null) {
+        sceneDependents[sceneName] ??= {};
+        sceneDependents[sceneName][defElem.getAttribute("source")] =
+            propertyName;
+    }
 
     for (let attrName of defElem.getAttributeNames()) {
         keyDefs[sceneName][propertyName][attrName] =
@@ -38,7 +49,8 @@ let vanillaGraphics = {
             );
 
         if (keyCache == null) this.onChange();
-        scene.onChangeRaw(...(keyCache[scene.name] ?? [undefined]));
+        scene.buildFilters();
+        // scene.onChangeRaw(...(keyCache[scene.name] ?? []));
         scenes[scene.name] = scene;
     },
 
@@ -90,6 +102,18 @@ let vanillaGraphics = {
             }
         }
 
+        for (let [scene, dependents] of Object.entries(sceneDependents)) {
+            interpolatedKeys[scene] ??= [];
+            interpolatedKeys[scene][0] ??= {};
+
+            for (let [sourceName, propertyName] of Object.entries(
+                dependents ?? {},
+            )) {
+                interpolatedKeys[scene][0][propertyName] =
+                    dependentValues[sourceName];
+            }
+        }
+
         for (let [sceneName, scene] of Object.entries(scenes)) {
             scene.onChangeRaw(...(interpolatedKeys[sceneName] ?? [{}]), params);
         }
@@ -98,7 +122,28 @@ let vanillaGraphics = {
     },
 };
 
-vanillaGraphics.onChange();
-addEventListener("scroll", vanillaGraphics.onChange);
-addEventListener("resize", () => vanillaGraphics.onChange({ force: true }));
-requestAnimationFrame(vanillaGraphics.onFrame);
+function start() {
+    for (let valueSource of Array.from(
+        document.getElementsByClassName("value-source"),
+    )) {
+        let sourceIdent = valueSource.getAttribute("source-ident");
+        let sourceType = valueSource.getAttribute("source-type");
+
+        let value = dependentValueExtractors[sourceType](valueSource);
+        dependentValues[sourceIdent] = value;
+
+        dependentValueListeners[sourceType](valueSource, () => {
+            let value = dependentValueExtractors[sourceType](valueSource);
+            dependentValues[sourceIdent] = value;
+            vanillaGraphics.onChange();
+        });
+    }
+
+    vanillaGraphics.onChange({ force: true });
+    addEventListener("scroll", vanillaGraphics.onChange);
+    addEventListener("resize", () => vanillaGraphics.onChange({ force: true }));
+
+    requestAnimationFrame(vanillaGraphics.onFrame);
+}
+
+addEventListener("load", start)
